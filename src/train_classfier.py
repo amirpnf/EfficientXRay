@@ -22,21 +22,31 @@ def train_classifier():
     train_dataset = ImageFolder(root="data/labeled/train", transform=transform)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.classifier.parameters(), lr=1e-3)
+    weight_normal = 390 / 234 
+    weights = torch.tensor([weight_normal, 1.0]).to(DEVICE)
+    criterion = nn.CrossEntropyLoss(weight=weights)
 
-    model.train()
+    optimizer = optim.Adam(model.parameters(), lr=1e-5)
+
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2)
 
     for epoch in range(10):
+        train_loss = 0.0
         for images, labels in train_loader:
             images, labels = images.to(DEVICE), labels.to(DEVICE)
-
+            
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-        print(f"Epoch {epoch+1} finished, Loss : {loss.item():.4f}")
+            train_loss += loss.item()
+        
+        avg_loss = train_loss / len(train_loader)
+        
+        scheduler.step(avg_loss)
+        
+        print(f"Epoch {epoch+1} finished, Loss: {avg_loss:.4f}, LR: {optimizer.param_groups[0]['lr']}")
 
     torch.save(model.state_dict(), "final_xray_classifier.pth")
 
