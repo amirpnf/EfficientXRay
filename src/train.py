@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import wandb
 from tqdm import tqdm
 
-def train_one_epoch(model, loader, optimizer, device, temperature=0.5):
+def train_one_epoch(model, loader, optimizer, device, temperature=0.1):
     model.train()
     total_loss = 0
     
@@ -20,7 +20,7 @@ def train_one_epoch(model, loader, optimizer, device, temperature=0.5):
         sim = torch.mm(z, z.t()) / temperature
         
         n = z1.size(0)
-        labels = torch.cat([torch.arange(n, 2*n), torch.arange(0, n)].to(device))
+        labels = torch.cat([torch.arange(n, 2*n), torch.arange(0, n)]).to(device)
         
         loss = F.cross_entropy(sim, labels)
         

@@ -9,7 +9,7 @@ class ContrastiveModel(nn.Module):
         self.encoder = models.resnet50(pretrained=True)
         in_features = self.encoder.fc.in_features
         
-        self.encoder.fc = nn.Indentity()
+        self.encoder.fc = nn.Identity()
         
         self.projection_head = nn.Sequential(
             nn.Linear(in_features, 512),
